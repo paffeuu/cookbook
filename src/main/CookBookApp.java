@@ -11,8 +11,8 @@ public class CookBookApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("main_window.fxml"));
-        primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene(root, 300, 275));
+        primaryStage.setTitle("Książka kucharska");
+        primaryStage.setScene(new Scene(root, 750, 580));
         primaryStage.show();
     }
 
