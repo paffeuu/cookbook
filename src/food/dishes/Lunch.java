@@ -1,18 +1,24 @@
 package food.dishes;
 
 import food.Dish;
-
-import java.io.File;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 public class Lunch extends Dish {
+    final private static String plType;
 
-    public Lunch(File instructionFile)
+    public Lunch(String name, String instructionContent)
     {
-        super(instructionFile);
+        super(name, instructionContent);
     }
 
-    public Lunch(String instructionContent)
+    static
     {
-        super(instructionContent);
+        plType = "drugie śniadanie";
+    }
+
+    @Override
+    public StringProperty typeProperty() {
+        return new SimpleStringProperty(plType);
     }
 }

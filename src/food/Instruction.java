@@ -1,14 +1,16 @@
 package food;
 
-public abstract class Instruction {
+public class Instruction {
     private String instructionContent;
 
-    protected Instruction()
-    {}
-
-    protected Instruction(String instructionContent)
+    public Instruction(String instructionContent)
     {
         this.instructionContent = instructionContent;
+    }
+
+    @Override
+    public String toString() {
+        return "Sposób przygotowania: " + instructionContent;
     }
 
     public String getInstructionContent() {

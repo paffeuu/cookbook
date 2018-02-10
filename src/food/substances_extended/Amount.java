@@ -1,4 +1,4 @@
-package food.substances;
+package food.substances_extended;
 
 public class Amount {
     private double size;

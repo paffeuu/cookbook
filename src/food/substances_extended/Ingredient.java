@@ -1,7 +1,6 @@
-package food.substances;
+package food.substances_extended;
 
 import com.sun.istack.internal.NotNull;
-import food.Substance;
 
 public class Ingredient {
     private Substance substance;
