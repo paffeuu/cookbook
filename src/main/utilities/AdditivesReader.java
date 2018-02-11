@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Scanner;
 
-public class AdditivesReader {
+public class AdditivesReader extends InputReader{
     final private static String FILE_DIRECTORY;
     private HashSet<Additive> loadedAdditives;
 
@@ -26,6 +26,7 @@ public class AdditivesReader {
             while (scan.hasNextLine())
             {
                 String line = scan.nextLine();
+                line = removeUTF8BOM(line);
                 Additive newAdditive = new Additive(line);
                 loadedAdditives.add(newAdditive);
             }

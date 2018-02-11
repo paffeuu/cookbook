@@ -5,14 +5,15 @@ import food.SimpleIngredient;
 import food.dishes.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
-public class RecipeReader {
+public class RecipeReader extends InputReader{
     private static int fileCounter;
     final private static String FILE_DIRECTORY;
     final private static int MAX_FILES;
-    final private static String[] DISH_TYPES = {"sniadanie", "II sniadanie", "obiad", "podwieczorek", "kolacja"};
+    final private static String[] DISH_TYPES = {"[śŚsS]niadanie", "II [śŚsS]niadanie", "obiad", "podwieczorek", "kolacja"};
     private ArrayList<Dish> loadedDishes;
 
 
@@ -32,17 +33,20 @@ public class RecipeReader {
     {
         int exceptionCounter = 0;
         String[] input;
+        final String UTF8_BOM = "\uFEFF";
         while (fileCounter < MAX_FILES && exceptionCounter < 5)
         {
             input = new String[200];
             File recipeFile = new File(FILE_DIRECTORY + ++fileCounter + ".txt");
-            try (Scanner scan = new Scanner(recipeFile))
+            try (Scanner scan = new Scanner(new FileInputStream(recipeFile)))
             {
                 exceptionCounter = 0;
                 int i = 0;
                 while (scan.hasNextLine())
                 {
-                    input[i++] = scan.nextLine();
+                    input[i] = scan.nextLine();
+                    input[i] = removeUTF8BOM(input[i]);
+                    i++;
                 }
                 input = Arrays.copyOf(input, i);
                 System.out.println("File " + fileCounter + ".txt was successfully found and read!");
@@ -76,6 +80,7 @@ public class RecipeReader {
                     i = lc.count;
                 }
         }
+        System.out.println(lc.count + " lines was found in the file.");
     }
 
     private Dish createDish(LineCounter lc, String[] input, int dishNr)
@@ -106,14 +111,13 @@ public class RecipeReader {
         }
         if(newDish != null)
             newDish.setIngredients(ingredients);
-
         return newDish;
     }
 
     private HashSet<SimpleIngredient> getIngredients(LineCounter lc, String[] input)
     {
         HashSet<SimpleIngredient> ingredients = new HashSet<>();
-        while(!input[lc.count].matches("[ ]*[A-Z](.)+") && lc.count < input.length)
+        while(!(input[lc.count].matches("[ ]*[A-Z](.)+[.]") /*&& input[lc.count].charAt(input[lc.count].length()-1) == '.'*/) && lc.count < input.length)
         {
             if(input[lc.count].matches("(.)*[-–](.)*") && input[lc.count].length() < 50)
             {
@@ -123,7 +127,6 @@ public class RecipeReader {
             }
             lc.count++;
         }
-    //    ingredients.forEach(ingredient -> System.out.println(ingredient.toString()));
         return ingredients;
     }
 
