@@ -12,3 +12,5 @@ chia
 rzodkiewka
 komosa ryżowa
 makrela
+truskawki
+kokos

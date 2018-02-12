@@ -3,6 +3,7 @@ package main.utilities;
 import food.Dish;
 import food.SimpleIngredient;
 import food.dishes.*;
+import javafx.scene.control.Alert;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +14,7 @@ public class RecipeReader extends InputReader{
     private static int fileCounter;
     final private static String FILE_DIRECTORY;
     final private static int MAX_FILES;
+    final private static int EXCEPTION_LIMIT;
     final private static String[] DISH_TYPES = {"[śŚsS]niadanie", "II [śŚsS]niadanie", "obiad", "podwieczorek", "kolacja"};
     private ArrayList<Dish> loadedDishes;
 
@@ -21,7 +23,8 @@ public class RecipeReader extends InputReader{
     {
         fileCounter = 0;
         FILE_DIRECTORY = "db/recipes/";
-        MAX_FILES = 10;             //  ile kolejnych plików próbuje wczytać
+        MAX_FILES = 50;             //  ile kolejnych plików próbuje wczytać
+        EXCEPTION_LIMIT = 5;
     }
 
     public RecipeReader(ArrayList<Dish> dishes)
@@ -29,12 +32,12 @@ public class RecipeReader extends InputReader{
         loadedDishes = dishes;
     }
 
-    public void loadAllRecipes()
+    public void loadAllRecipes() throws BadFormattedFileException
     {
         int exceptionCounter = 0;
         String[] input;
         final String UTF8_BOM = "\uFEFF";
-        while (fileCounter < MAX_FILES && exceptionCounter < 5)
+        while (fileCounter < MAX_FILES && exceptionCounter < EXCEPTION_LIMIT)
         {
             input = new String[200];
             File recipeFile = new File(FILE_DIRECTORY + ++fileCounter + ".txt");
@@ -63,7 +66,7 @@ public class RecipeReader extends InputReader{
         }
     }
 
-    private void analyzeInput(String[] input)
+    private void analyzeInput(String[] input) throws BadFormattedFileException
     {
         int dishNr = -1;
         LineCounter lc = new LineCounter();
@@ -76,48 +79,75 @@ public class RecipeReader extends InputReader{
                 {
                     dishNr = j;
                     lc.count++;
-                    loadedDishes.add(createDish(lc, input, dishNr));
+                    Dish newDish = createDish(lc, input, dishNr);
+                    if (newDish != null)
+                        loadedDishes.add(newDish);
                     i = lc.count;
                 }
         }
         System.out.println(lc.count + " lines was found in the file.");
     }
 
-    private Dish createDish(LineCounter lc, String[] input, int dishNr)
+    private Dish createDish(LineCounter lc, String[] input, int dishNr) throws BadFormattedFileException
     {
         Dish newDish = null;
         while(input[lc.count].equals(""))
             lc.count++; // pomijamy pustą linię
-        String dishName = input[lc.count++];
+        String[] nameCal = getNameCal(lc, input);
+        String dishName = nameCal[0];
+        String dishCal = nameCal[1];
         HashSet<SimpleIngredient> ingredients = getIngredients(lc, input);
         String instructionContent = getInstruction(lc, input, dishNr);
+
         switch (dishNr)
         {
             case 0:
-                newDish = new Breakfast(dishName, instructionContent);
+                newDish = new Breakfast(dishName, dishCal, instructionContent);
                 break;
             case 1:
-                newDish = new Lunch(dishName, instructionContent);
+                newDish = new Lunch(dishName, dishCal, instructionContent);
                 break;
             case 2:
-                newDish = new Dinner(dishName, instructionContent);
+                newDish = new Dinner(dishName, dishCal, instructionContent);
                 break;
             case 3:
-                newDish = new AfternoonSnack(dishName, instructionContent);
+                newDish = new AfternoonSnack(dishName, dishCal, instructionContent);
                 break;
             case 4:
-                newDish = new Supper(dishName, instructionContent);
+                newDish = new Supper(dishName, dishCal, instructionContent);
                 break;
         }
         if(newDish != null)
             newDish.setIngredients(ingredients);
+        for (Dish dish : loadedDishes)
+            if(dish.equals(newDish))
+                return null;
         return newDish;
     }
 
-    private HashSet<SimpleIngredient> getIngredients(LineCounter lc, String[] input)
+    private String[] getNameCal(LineCounter lc, String[] input)
+    {
+        String[] nameCal = new String[2];
+        String temp = input[lc.count];
+        int i = 0;
+        for (char ch : temp.toCharArray())
+        {
+            if (ch >= 48 && ch <= 57)
+            {
+                nameCal[0] = temp.substring(0, i);
+                nameCal[1] = temp.substring(i);
+                break;
+            }
+            i++;
+        }
+        lc.count++;
+        return nameCal;
+    }
+
+    private HashSet<SimpleIngredient> getIngredients(LineCounter lc, String[] input) throws BadFormattedFileException
     {
         HashSet<SimpleIngredient> ingredients = new HashSet<>();
-        while(!(input[lc.count].matches("[ ]*[A-Z](.)+[.]") /*&& input[lc.count].charAt(input[lc.count].length()-1) == '.'*/) && lc.count < input.length)
+        while(!(input[lc.count].matches("[ ]*[A-Z](.)+[.]")) && lc.count < input.length)
         {
             if(input[lc.count].matches("(.)*[-–](.)*") && input[lc.count].length() < 50)
             {
@@ -127,6 +157,8 @@ public class RecipeReader extends InputReader{
             }
             lc.count++;
         }
+        if (lc.count == input.length)
+            throw new BadFormattedFileException();
         return ingredients;
     }
 
@@ -143,9 +175,18 @@ public class RecipeReader extends InputReader{
     {
         private int count;
 
-        public LineCounter()
+        private LineCounter()
         {
             count = 0;
+        }
+    }
+
+    public class BadFormattedFileException extends IOException
+    {
+        public BadFormattedFileException()
+        {
+            super();
+            printStackTrace();
         }
     }
 }

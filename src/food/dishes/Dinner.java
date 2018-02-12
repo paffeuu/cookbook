@@ -5,11 +5,11 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Dinner extends Dish {
-    final private static String plType;
+    final public static String plType;
 
-    public Dinner(String name, String instructionContent)
+    public Dinner(String name, String cal, String instructionContent)
     {
-        super(name, instructionContent);
+        super(name, cal, instructionContent);
     }
 
     static

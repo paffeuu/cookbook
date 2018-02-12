@@ -2,19 +2,28 @@ package main.gui;
 
 import food.Dish;
 import food.SimpleIngredient;
+import food.dishes.*;
 import food.substances_extended.Substantial;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import javafx.util.Callback;
 import main.utilities.SubstantialsReader;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,35 +31,49 @@ import static main.CookBookApp.observableDishes;
 
 public class MainWindowController
 {
-    @FXML
-    TableView<Dish> dishTable;
-    @FXML
-    TableColumn<Dish, String> dishNameCol;
-    @FXML
-    TableColumn<Dish, String> dishTypeCol;
+    @FXML   TableView<Dish> dishTable;
+    @FXML   TableColumn<Dish, String> dishNameCol;
+    @FXML   TableColumn<Dish, Integer> calCol;
+    @FXML   TableColumn<Dish, String> dishTypeCol;
 
-    @FXML
-    VBox checkBoxesVBox;
+    @FXML   VBox ingredientsVBox;
+    @FXML   VBox dishesTypesVBox;
 
-    ObservableList<Dish> filteredDishes;
-    HashSet<Substantial> markedSet;
 
-    ArrayList<Substantial> substantialsList;
-    HashMap<Substantial, CheckBox> filterCheckBoxes;
+    private ObservableList<Dish> typeFilteredDishes;
+    private ObservableList<Dish> ingrFilteredDishes;
+
+    private HashSet<Substantial> markedIngrSet;
+    private HashSet<Class> markedTypesSet;
+    private ArrayList<Substantial> substantialsList;
+
+    private HashMap<Substantial, CheckBox> filterIngrCheckBoxes;
+    private HashMap<Class, CheckBox> filterDishTypesCheckboxes;
 
     public void initialize()
     {
         fillColumns();
         substantialsList = getSubstantialsList();
         createFilterCheckBoxes();
+        createDishesTypesCheckBoxes();
     }
 
     private void fillColumns()
     {
         dishTable.setItems(observableDishes);
         dishNameCol.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
+        calCol.setCellValueFactory(cellData -> cellData.getValue().caloriesProperty().asObject());
         dishTypeCol.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
-
+        dishTable.setRowFactory( tv -> {
+            TableRow<Dish> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && !row.isEmpty())
+                {
+                    openDetailsWindow(row.getItem());
+                }
+            });
+            return row;
+        });
     }
 
     public ArrayList<Substantial> getSubstantialsList() {
@@ -60,35 +83,73 @@ public class MainWindowController
 
     private void createFilterCheckBoxes()
     {
-        filterCheckBoxes = new HashMap<>();
-        markedSet = new HashSet<>();
+        filterIngrCheckBoxes = new HashMap<>();
+        markedIngrSet = new HashSet<>();
         for (Substantial substantial : substantialsList)
         {
             CheckBox newCheckBox = new CheckBox(substantial.getName());
-            filterCheckBoxes.put(substantial, newCheckBox);
+            filterIngrCheckBoxes.put(substantial, newCheckBox);
             newCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
                     if(newValue)
-                        markedSet.add(substantial);
+                        markedIngrSet.add(substantial);
                     else if(oldValue)
-                        markedSet.remove(substantial);
-                    prepareFilteredList();
-                    if (markedSet.isEmpty())
-                        dishTable.setItems(observableDishes);
+                        markedIngrSet.remove(substantial);
+                    prepareIngrFilteredList();
+                    if (markedIngrSet.isEmpty())
+                        dishTable.setItems(typeFilteredDishes);
 
             });
-            checkBoxesVBox.getChildren().add(newCheckBox);
+            ingredientsVBox.getChildren().add(newCheckBox);
         }
-
     }
 
-    private void prepareFilteredList()
+    private void createDishesTypesCheckBoxes()
     {
-        filteredDishes = FXCollections.observableArrayList();
-        dishTable.setItems(filteredDishes);
-        for (Dish dish : observableDishes)
+        typeFilteredDishes = observableDishes;
+        markedTypesSet = new HashSet<>();
+
+        filterDishTypesCheckboxes = new HashMap<>();
+        LinkedHashMap<String, Class> dishTypesPL = new LinkedHashMap<>();
+
+        dishTypesPL.put(Breakfast.plType, Breakfast.class);
+        dishTypesPL.put(Lunch.plType, Lunch.class);
+        dishTypesPL.put(Dinner.plType, Dinner.class);
+        dishTypesPL.put(AfternoonSnack.plType, AfternoonSnack.class);
+        dishTypesPL.put(Supper.plType, Supper.class);
+
+        dishTypesPL.forEach( (key, value) -> {
+            CheckBox newCheckbox = new CheckBox(key);
+            newCheckbox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                if(newValue)
+                    markedTypesSet.add(value);
+                else if(oldValue)
+                    markedTypesSet.remove(value);
+                if (markedTypesSet.isEmpty())
+                {
+                    typeFilteredDishes = observableDishes;
+                    prepareIngrFilteredList();
+                }
+                else
+                {
+                    prepareTypeFilteredList();
+                }
+                if (markedIngrSet.isEmpty())
+                    dishTable.setItems(typeFilteredDishes);
+
+            });
+
+            dishesTypesVBox.getChildren().add(newCheckbox);
+        });
+    }
+
+    private void prepareIngrFilteredList()
+    {
+        ingrFilteredDishes = FXCollections.observableArrayList();
+        dishTable.setItems(ingrFilteredDishes);
+        for (Dish dish : typeFilteredDishes)
         {
             boolean anySubstantialNotFound = true;
-            for (Substantial substantial : markedSet)
+            for (Substantial substantial : markedIngrSet)
             {
                 anySubstantialNotFound = true;
                 for (SimpleIngredient ingredient : dish.getIngredients())
@@ -104,7 +165,39 @@ public class MainWindowController
                     break;
             }
             if(!anySubstantialNotFound)
-                filteredDishes.add(dish);
+                ingrFilteredDishes.add(dish);
         }
+    }
+
+    private void prepareTypeFilteredList()
+    {
+        typeFilteredDishes = FXCollections.observableArrayList();
+        for (Dish dish : observableDishes)
+        {
+            for (Class cl : markedTypesSet)
+            {
+                if (dish.getClass().equals(cl))
+                    typeFilteredDishes.add(dish);
+            }
+        }
+        prepareIngrFilteredList();
+    }
+
+    // other windows
+    private void openDetailsWindow(Dish dish)
+    {
+        try
+        {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("dish_details.fxml"));
+            Parent root = fxmlLoader.load();
+            Stage detailsStage = new Stage();
+            detailsStage.setTitle("Książka kucharska");
+            detailsStage.setScene(new Scene(root, 650, 530));
+            detailsStage.show();
+
+            DishDetailsController dishDetailsController = fxmlLoader.getController();
+            dishDetailsController.showDetails(dish);
+        } catch (IOException ioe)
+        {ioe.printStackTrace();}
     }
 }

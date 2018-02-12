@@ -11,6 +11,7 @@ import javafx.stage.Stage;
 import main.utilities.RecipeReader;
 
 import java.util.ArrayList;
+import main.utilities.RecipeReader.BadFormattedFileException;
 
 public class CookBookApp extends Application {
     public static ObservableList<Dish> observableDishes;
@@ -19,12 +20,13 @@ public class CookBookApp extends Application {
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("gui/main_window.fxml"));
         primaryStage.setTitle("Książka kucharska");
-        primaryStage.setScene(new Scene(root, 750, 580));
+        primaryStage.setScene(new Scene(root, 900, 600));
         primaryStage.show();
     }
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws BadFormattedFileException
+    {
         ArrayList<Dish> dishes = new ArrayList<>();
         RecipeReader rr = new RecipeReader(dishes);
         rr.loadAllRecipes();
