@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jPDFPrint.v2017R1.05">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jPDFPrint.v2017R1.05.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

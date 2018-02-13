@@ -14,9 +14,9 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 import main.utilities.SubstantialsReader;
 
 import java.io.IOException;
@@ -64,15 +64,15 @@ public class MainWindowController
         dishNameCol.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
         calCol.setCellValueFactory(cellData -> cellData.getValue().caloriesProperty().asObject());
         dishTypeCol.setCellValueFactory(cellData -> cellData.getValue().typeProperty());
-        dishTable.setRowFactory( tv -> {
-            TableRow<Dish> row = new TableRow<>();
-            row.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2 && !row.isEmpty())
-                {
-                    openDetailsWindow(row.getItem());
-                }
-            });
-            return row;
+        dishTable.setOnKeyPressed(event -> {
+            Dish dish = dishTable.getSelectionModel().getSelectedItem();
+            if (event.getCode().equals(KeyCode.ENTER) && dish != null)
+                openDetailsWindow(dish);
+        });
+        dishTable.setOnMouseClicked(event -> {
+            Dish dish = dishTable.getSelectionModel().getSelectedItem();
+            if (event.getClickCount() == 2 && dish != null)
+                openDetailsWindow(dish);
         });
     }
 
@@ -192,7 +192,7 @@ public class MainWindowController
             Parent root = fxmlLoader.load();
             Stage detailsStage = new Stage();
             detailsStage.setTitle("Książka kucharska");
-            detailsStage.setScene(new Scene(root, 650, 530));
+            detailsStage.setScene(new Scene(root, 650, 580));
             detailsStage.show();
 
             DishDetailsController dishDetailsController = fxmlLoader.getController();

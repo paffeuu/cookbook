@@ -49,6 +49,7 @@ public class SimpleIngredient
     }
 
     public void setSubstance(String substance) {
+        substance = Character.toLowerCase(substance.charAt(0)) + substance.substring(1, substance.length());
         this.substance = substance;
 
         String regex;
