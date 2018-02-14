@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
@@ -29,9 +30,10 @@
    <center>
       <TableView fx:id="dishTable" maxHeight="500.0" maxWidth="500.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="370.0" prefWidth="439.0" BorderPane.alignment="CENTER">
         <columns>
-          <TableColumn fx:id="dishNameCol" prefWidth="220.0" text="Nazwa dania" />
-            <TableColumn fx:id="calCol" prefWidth="70.0" text="Kalorie" />
-          <TableColumn fx:id="dishTypeCol" minWidth="0.0" prefWidth="167.0" text="Posiłek" />
+          <TableColumn fx:id="dishNameCol" maxWidth="320.0" minWidth="200.0" prefWidth="240.0" text="Nazwa dania" />
+            <TableColumn fx:id="calCol" maxWidth="60.0" minWidth="40.0" prefWidth="51.0" text="Kalorie" />
+          <TableColumn fx:id="dishTypeCol" maxWidth="130.0" minWidth="100.0" prefWidth="115.0" text="Posiłek" />
+            <TableColumn fx:id="plusCol" maxWidth="35.0" minWidth="25.0" prefWidth="30.0" resizable="false" text="+" />
         </columns>
          <opaqueInsets>
             <Insets />
@@ -39,6 +41,9 @@
          <BorderPane.margin>
             <Insets bottom="10.0" left="30.0" right="10.0" top="10.0" />
          </BorderPane.margin>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
       </TableView>
    </center>
    <right>
@@ -85,6 +90,13 @@
       </GridPane>
    </right>
    <bottom>
-      <HBox prefHeight="68.0" prefWidth="594.0" BorderPane.alignment="CENTER" />
+      <HBox alignment="CENTER" prefHeight="53.0" prefWidth="779.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button fx:id="shoppingListButton" minWidth="150.0" mnemonicParsing="false" text="Lista zakupów" textAlignment="CENTER">
+               <HBox.margin>
+                  <Insets right="250.0" />
+               </HBox.margin>
+            </Button>
+         </children></HBox>
    </bottom>
 </BorderPane>

@@ -79,7 +79,12 @@
          <children>
             <Button fx:id="printButton" minWidth="100.0" mnemonicParsing="false" text="Drukuj..." textAlignment="CENTER">
                <HBox.margin>
-                  <Insets left="250.0" />
+                  <Insets left="150.0" />
+               </HBox.margin>
+            </Button>
+            <Button fx:id="okButton" minWidth="100.0" mnemonicParsing="false" text="OK">
+               <HBox.margin>
+                  <Insets left="150.0" right="150.0" />
                </HBox.margin>
             </Button>
          </children>

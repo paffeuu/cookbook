@@ -18,9 +18,12 @@ import com.itextpdf.kernel.pdf.WriterProperties;
 import com.itextpdf.layout.font.FontProvider;
 import food.Dish;
 import food.SimpleIngredient;
+import javafx.scene.control.Alert;
 
 import java.io.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 
 public class PDFCreator {
@@ -36,6 +39,8 @@ public class PDFCreator {
     private String resourceFolder;
     private String fileName;
     private boolean properlyCreated;
+
+    private static int shoppingListCounter;
 
     static
     {
@@ -122,23 +127,76 @@ public class PDFCreator {
 
         try (FileWriter fw = new FileWriter(templateFile))
         {
-            output = convertPolishCharsToHTML(output);
+        //    output = convertPolishCharsToHTML(output);
             fw.write(output);
         }
         catch (IOException ioe)
         {ioe.printStackTrace();}
     }
 
-    public String preparePdf(ArrayList<SimpleIngredient> ingredientList)
+    public String preparePdf(ArrayList<SimpleIngredient> ingredientList, ArrayList<Dish> dishesList)
     {
+        if (shoppingListCounter++ > 0)
+            this.fileName += ("_" + shoppingListCounter);
         String htmlSource = TEMPLATES_FOLDER + SHOPPING_TEMPLATE + ".html";
         this.htmlSource = htmlSource;
-        // processing
-
-        this.htmlSource = TEMPLATES_FOLDER + PREPARED_TEMPLATE_FOLDER + SHOPPING_TEMPLATE + ".html";
-        this.resourceFolder += PREPARED_TEMPLATE_FOLDER;
+        prepareShoppingTemplate(ingredientList, dishesList);
         createPdf();
         return pdfDest;
+    }
+
+    private void prepareShoppingTemplate(ArrayList<SimpleIngredient> ingredients, ArrayList<Dish> dishes)
+    {
+        String template;
+        char[] chars = new char[5000];
+        int i = 0;
+        try (FileReader fr = new FileReader(new File(htmlSource)))
+        {
+            for (i = 0; i < 5000; i++)
+            {
+                chars[i] = (char) fr.read();
+                if (chars[i] == '\uFFFF')           // znak EOF
+                    break;
+            }
+
+        }
+        catch (IOException ioe)
+        {ioe.printStackTrace();}
+        finally {
+            template = new String(chars);
+            template = template.substring(0, i);
+        }
+
+        this.htmlSource = TEMPLATES_FOLDER + PREPARED_TEMPLATE_FOLDER + fileName + ".html";
+        this.resourceFolder += PREPARED_TEMPLATE_FOLDER;
+        File templateFile = new File(htmlSource);
+
+        final String newLine = "</br>";
+        final String tab = "&#09;";
+        final String bullet = "&bull; ";
+        final String newPoint = "<li>";
+        final String newPointEnd = "</li>";
+
+        String output = template;
+        output = output.replace("@date", LocalDate.now().toString());
+
+        String dishesContent = "";
+        for (Dish dish : dishes)
+            dishesContent += (newPoint + dish.toString() + newPointEnd);
+        output = output.replace("@dishes", dishesContent);
+
+        String ingredientsContent = "";
+        for (SimpleIngredient simpleIngredient: ingredients)
+            ingredientsContent += (newPoint + simpleIngredient.toString() + newPointEnd);
+        output = output.replace("@ingredients", ingredientsContent);
+
+        try (FileWriter fw = new FileWriter(templateFile))
+        {
+            output = convertPolishCharsToHTML(output);
+            fw.write(output);
+        }
+        catch (IOException ioe)
+        {ioe.printStackTrace();}
     }
 
     private void createPdf() {
@@ -181,6 +239,12 @@ public class PDFCreator {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        finally {
+            if (properlyCreated)
+                wasProperlyCreatedAlert();
+            else
+                notCreatedAlert();
+        }
     }
 
     private String convertPolishCharsToHTML(String s)
@@ -193,5 +257,23 @@ public class PDFCreator {
 
     public boolean isProperlyCreated() {
         return properlyCreated;
+    }
+
+    public void wasProperlyCreatedAlert()
+    {
+        Alert properlyCreated = new Alert(Alert.AlertType.INFORMATION);
+        properlyCreated.setTitle("Sukces!");
+        properlyCreated.setHeaderText("");
+        properlyCreated.setContentText("Plik PDF z przepisem został pomyślnie utworzony!\n" + pdfDest + "\nDrukowanie...");
+        properlyCreated.show();
+    }
+
+    public void notCreatedAlert()
+    {
+        Alert notCreated = new Alert(Alert.AlertType.ERROR);
+        notCreated.setTitle("Błąd!");
+        notCreated.setHeaderText("");
+        notCreated.setContentText("Wystąpił nieoczekiwany błąd! Plik PDF z przepisem nie został utworzony!");
+        notCreated.show();
     }
 }
