@@ -1,7 +1,5 @@
 package main.utilities;
 
-import food.Dish;
-import food.SimpleIngredient;
 import food.substances_extended.Additive;
 
 import java.io.File;

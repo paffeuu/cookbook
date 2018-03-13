@@ -59,7 +59,9 @@ public class DishDetailsController {
         if (pdfCreator.isProperlyCreated())
         {
             pdfPrinter = new PDFPrinter(pdfDest);
-            pdfPrinter.print();
+            Thread printThread = new Thread(pdfPrinter);
+            printThread.start();
+            //pdfPrinter.print();
         }
     }
 }

@@ -5,9 +5,10 @@ import food.SimpleIngredient;
 import food.dishes.*;
 import javafx.scene.control.Alert;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.Buffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class RecipeReader extends InputReader{
@@ -41,7 +42,26 @@ public class RecipeReader extends InputReader{
         {
             input = new String[200];
             File recipeFile = new File(FILE_DIRECTORY + ++fileCounter + ".txt");
-            try (Scanner scan = new Scanner(new FileInputStream(recipeFile)))
+            try (BufferedReader scan = new BufferedReader(new InputStreamReader(new FileInputStream(recipeFile), StandardCharsets.UTF_8)))
+            {
+                exceptionCounter = 0;
+                int i = 0;
+                while ((input[i] = scan.readLine()) != null)
+                {
+                    input[i] = removeUTF8BOM(input[i]);
+                    i++;
+                }
+                input = Arrays.copyOf(input, i);
+                System.out.println("File " + fileCounter + ".txt was successfully found and read!");
+            }
+            catch (IOException ioe)
+            {
+                System.out.println("File " + fileCounter + ".txt wasn't found!");
+                input = null;
+                exceptionCounter++;
+            }
+
+            /*try (Scanner scan = new Scanner(new FileInputStream(recipeFile)))
             {
                 exceptionCounter = 0;
                 int i = 0;
@@ -59,7 +79,7 @@ public class RecipeReader extends InputReader{
                 System.out.println("File " + fileCounter + ".txt wasn't found!");
                 input = null;
                 exceptionCounter++;
-            }
+            }*/
 
             if (input != null)
                 analyzeInput(input);

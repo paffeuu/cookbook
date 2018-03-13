@@ -10,6 +10,13 @@
       <root url="jar://$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/1.7.13/slf4j-api-1.7.13.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/itextpdf/html2pdf/2.0.1/html2pdf-2.0.1-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/itextpdf/forms/7.1.1/forms-7.1.1-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/itextpdf/kernel/7.1.1/kernel-7.1.1-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/itextpdf/io/7.1.1/io-7.1.1-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/itextpdf/layout/7.1.1/layout-7.1.1-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/1.7.13/slf4j-api-1.7.13-sources.jar!/" />
+    </SOURCES>
   </library>
 </component>

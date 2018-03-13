@@ -21,9 +21,12 @@ import food.SimpleIngredient;
 import javafx.scene.control.Alert;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 
 public class PDFCreator {
@@ -39,6 +42,8 @@ public class PDFCreator {
     private String resourceFolder;
     private String fileName;
     private boolean properlyCreated;
+
+    private Logger pdfLogger;
 
     private static int shoppingListCounter;
 
@@ -57,6 +62,7 @@ public class PDFCreator {
         this.resourceFolder = resourceFolder;
         this.fileName = fileName;
         properlyCreated = false;
+        //setPdfLogger();
     }
 
     public static PDFCreator create(String fileName)
@@ -125,7 +131,7 @@ public class PDFCreator {
         String instruction = dish.getInstruction().getInstructionContent();
         output = output.replace("@instruction", instruction);
 
-        try (FileWriter fw = new FileWriter(templateFile))
+        try (BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(templateFile), StandardCharsets.UTF_8)))
         {
         //    output = convertPolishCharsToHTML(output);
             fw.write(output);
@@ -138,8 +144,7 @@ public class PDFCreator {
     {
         if (shoppingListCounter++ > 0)
             this.fileName += ("_" + shoppingListCounter);
-        String htmlSource = TEMPLATES_FOLDER + SHOPPING_TEMPLATE + ".html";
-        this.htmlSource = htmlSource;
+        htmlSource = TEMPLATES_FOLDER + SHOPPING_TEMPLATE + ".html";
         prepareShoppingTemplate(ingredientList, dishesList);
         createPdf();
         return pdfDest;
@@ -190,7 +195,7 @@ public class PDFCreator {
             ingredientsContent += (newPoint + simpleIngredient.toString() + newPointEnd);
         output = output.replace("@ingredients", ingredientsContent);
 
-        try (FileWriter fw = new FileWriter(templateFile))
+        try (BufferedWriter fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(templateFile), StandardCharsets.UTF_8)))
         {
             output = convertPolishCharsToHTML(output);
             fw.write(output);
@@ -202,11 +207,9 @@ public class PDFCreator {
     private void createPdf() {
         try {
             FileOutputStream outputStream = new FileOutputStream(pdfDest);
-
             WriterProperties writerProperties = new WriterProperties();
             //Add metadata
             writerProperties.addXmpMetadata();
-
             PdfWriter pdfWriter = new PdfWriter(outputStream, writerProperties);
 
             PdfDocument pdfDoc = new PdfDocument(pdfWriter);
@@ -253,6 +256,21 @@ public class PDFCreator {
         String x = "&#261;"; // http://www.thesauruslex.com/typo/eng/enghtml.htm
         s = s.replace(polishChars, x);
         return s;
+    }
+
+    private void setPdfLogger()
+    {
+        pdfLogger = Logger.getLogger("PDFLogger");
+        try
+        {
+            FileHandler fh = new FileHandler("pdf_log.log");
+            fh.setEncoding("UTF-8");
+            pdfLogger.addHandler(fh);
+            SimpleFormatter sf = new SimpleFormatter();
+            fh.setFormatter(sf);
+        }
+        catch (IOException ioe)
+        {ioe.printStackTrace();}
     }
 
     public boolean isProperlyCreated() {
